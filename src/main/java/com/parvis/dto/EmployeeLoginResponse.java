@@ -1,4 +1,6 @@
 package com.parvis.dto;
 
-public record EmployeeLoginResponse() {
-}
+import lombok.Builder;
+
+@Builder
+public record EmployeeLoginResponse(String empId) {}

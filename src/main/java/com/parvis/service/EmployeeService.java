@@ -1,4 +1,9 @@
 package com.parvis.service;
 
-public class EmployeeService {
+import com.parvis.dto.EmployeeCreateRequest;
+import com.parvis.dto.EmployeeCreateResponse;
+import com.parvis.factory.AppResponse;
+
+public interface EmployeeService {
+    AppResponse<EmployeeCreateResponse> createEmployee(EmployeeCreateRequest request);
 }

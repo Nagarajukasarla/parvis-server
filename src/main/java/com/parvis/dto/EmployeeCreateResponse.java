@@ -1,9 +1,6 @@
-package com.parvis.response;
+package com.parvis.dto;
 
 import lombok.Builder;
 
 @Builder
-public record EmployeeCreateResponse(
-    Integer id,
-    String empId
-) {}
+public record EmployeeCreateResponse(String empId) {}

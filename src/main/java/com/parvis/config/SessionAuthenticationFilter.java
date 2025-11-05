@@ -1,15 +1,12 @@
-package com.parvis;
+package com.parvis.config;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-
-@Component
 public class SessionAuthenticationFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
@@ -20,16 +17,17 @@ public class SessionAuthenticationFilter implements Filter {
         HttpSession session = request.getSession(false);
         String path = request.getRequestURI();
 
-        // Skip login/logout/public endpoints
-        if (path.startsWith("/api/v1/auth/login") || path.startsWith("/av1/pi/public")) {
+        // Skip login/logout endpoints
+        if (path.startsWith("/api/v1/auth")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        if (session == null || session.getAttribute("USER_ID") == null) {
+        if (session == null || session.getAttribute("user") == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Unauthorized: Please login");
             return;
         }
+        filterChain.doFilter(servletRequest, servletResponse);
     }
 }

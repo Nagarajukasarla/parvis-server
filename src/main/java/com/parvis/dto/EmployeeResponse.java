@@ -1,4 +1,4 @@
-package com.parvis.response;
+package com.parvis.dto;
 
 import lombok.Builder;
 

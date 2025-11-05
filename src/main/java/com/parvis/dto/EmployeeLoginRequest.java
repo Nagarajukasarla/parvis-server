@@ -1,4 +1,3 @@
 package com.parvis.dto;
 
-public record EmployeeLoginRequest() {
-}
+public record EmployeeLoginRequest(String emailOrId, String password) {}

@@ -1,4 +1,14 @@
 package com.parvis.enums;
 
-public enum SHIFT {
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
+public enum Shift {
+    DAY("day"),
+    NIGHT("night");
+
+    private final String value;
 }

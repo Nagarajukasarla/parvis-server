@@ -1,4 +1,4 @@
-package com.parvis.request;
+package com.parvis.dto;
 
 import com.parvis.enums.Shift;
 

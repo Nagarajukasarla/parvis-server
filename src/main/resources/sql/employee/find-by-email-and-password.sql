@@ -1,0 +1,1 @@
+SELECT emp_id FROM _employee WHERE email = :p_email and password = crypt(:p_password, password);
