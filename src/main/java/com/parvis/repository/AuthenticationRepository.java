@@ -2,7 +2,9 @@ package com.parvis.repository;
 
 import com.parvis.dto.EmployeeLoginResponse;
 import com.parvis.exception.DatabaseException;
+import com.parvis.exception.InvalidPasswordException;
 import com.parvis.exception.InvalidRequestException;
+import com.parvis.exception.UserNotFoundException;
 import com.parvis.factory.AppResponse;
 import com.parvis.factory.PgErrorMapper;
 import com.parvis.utils.SessionUtils;
@@ -11,12 +13,15 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
+import java.util.logging.Logger;
 
 @Repository
 public class AuthenticationRepository extends BaseRepository {
     public AuthenticationRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         super(jdbcTemplate, namedParameterJdbcTemplate);
     }
+
+    private final Logger logger = Logger.getLogger(AuthenticationRepository.class.getName());
 
     public AppResponse<EmployeeLoginResponse> validateUser(String emailOrId, String password) {
         try {

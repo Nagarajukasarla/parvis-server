@@ -31,5 +31,4 @@ public final class PgErrorMapper {
 
         return new DatabaseException(error.message(), error.code(), error.sqlState(), error.hint(), error.cause());
     }
-
 }

@@ -18,6 +18,7 @@ public class GlobalExceptionHandler {
                                 ex.getMessage(),
                                 ex.getCode(),
                                 ex.getSqlState(),
+                                ex.getHint(),
                                 ex
                         )
                 ));

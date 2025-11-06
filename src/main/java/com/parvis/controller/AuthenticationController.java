@@ -3,6 +3,7 @@ package com.parvis.controller;
 import com.parvis.dto.EmployeeLoginRequest;
 import com.parvis.enums.ErrorOrigin;
 import com.parvis.exception.InvalidPasswordException;
+import com.parvis.exception.InvalidRequestException;
 import com.parvis.exception.UserNotFoundException;
 import com.parvis.factory.AppResponse;
 import com.parvis.factory.ErrorDetails;
@@ -42,7 +43,9 @@ public class AuthenticationController {
                 }
             }
             if (error.origin() == ErrorOrigin.SERVICE) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+                if (error.cause() instanceof InvalidRequestException) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+                }
             }
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }

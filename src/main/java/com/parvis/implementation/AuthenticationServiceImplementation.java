@@ -35,6 +35,7 @@ public class AuthenticationServiceImplementation implements AuthenticationServic
                             exception.getMessage(),
                             exception.getCode(),
                             exception.getSqlState(),
+                            exception.getHint(),
                             exception
                     )
             );

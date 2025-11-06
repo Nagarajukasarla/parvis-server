@@ -1,7 +1,9 @@
 package com.parvis.factory;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.parvis.enums.ErrorOrigin;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ErrorDetails(
         ErrorOrigin origin,
@@ -9,6 +11,8 @@ public record ErrorDetails(
         String code,
         String sqlState,
         String hint,
+
+        @JsonIgnore
         Throwable cause
 ) {
 

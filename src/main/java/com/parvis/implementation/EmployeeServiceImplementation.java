@@ -46,6 +46,7 @@ public class EmployeeServiceImplementation implements EmployeeService {
                     ex.getMessage(),
                     ex.getCode(),
                     ex.getSqlState(),
+                    ex.getHint(),
                     ex
                 )
             );

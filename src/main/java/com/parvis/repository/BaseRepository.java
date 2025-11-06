@@ -58,7 +58,7 @@ public abstract class BaseRepository {
         }
         catch (DataAccessException exception) {
             return AppResponse.failure(
-                    extractErrorDetails(
+                    extractSqlErrorDetails(
                             exception,
                             "Database Query Failed: " + sql,
                             "DB_QUERY_ERROR"
@@ -93,7 +93,7 @@ public abstract class BaseRepository {
         }
         catch (DataAccessException exception) {
             return AppResponse.failure(
-                    extractErrorDetails(
+                    extractSqlErrorDetails(
                             exception,
                             "Database Query Failed: " + sql,
                             "DB_QUERY_ERROR"
@@ -129,7 +129,7 @@ public abstract class BaseRepository {
         }
         catch (DataAccessException exception) {
             return AppResponse.failure(
-                    extractErrorDetails(
+                    extractSqlErrorDetails(
                             exception,
                             "Database function failed: " + name,
                             "DB_FUNCTION_ERROR"
@@ -145,7 +145,6 @@ public abstract class BaseRepository {
                     )
             );
         }
-
     }
 
     /**
@@ -167,7 +166,7 @@ public abstract class BaseRepository {
         }
         catch (DataAccessException exception) {
             return AppResponse.failure(
-                extractErrorDetails(
+                    extractSqlErrorDetails(
                     exception,
                     "Database function failed: " + name,
                     "DB_FUNCTION_ERROR"
@@ -194,7 +193,7 @@ public abstract class BaseRepository {
         return null;
     }
 
-    private ErrorDetails extractErrorDetails(DataAccessException ex, String contextMessage, String code) {
+    private ErrorDetails extractSqlErrorDetails(DataAccessException ex, String contextMessage, String code) {
         Throwable cause = ex.getRootCause();
 
         String sqlState = null;
@@ -217,14 +216,12 @@ public abstract class BaseRepository {
     }
 
     private String extractPgHint(SQLException sqlEx) {
-        // Postgres SQL sends structured fields in the server error message
-        // They appear as "Hint: something..." in the exception message.
         String msg = sqlEx.getMessage();
         if (msg == null) return null;
 
         int idx = msg.indexOf("Hint:");
         if (idx != -1) {
-            return msg.substring(idx + 5).trim();
+            return msg.substring(idx).trim().split("\n")[0];
         }
         return null;
     }
