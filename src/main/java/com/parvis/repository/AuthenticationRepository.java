@@ -4,12 +4,13 @@ import com.parvis.dto.EmployeeLoginResponse;
 import com.parvis.exception.DatabaseException;
 import com.parvis.exception.InvalidRequestException;
 import com.parvis.factory.AppResponse;
+import com.parvis.factory.PgErrorMapper;
 import com.parvis.utils.SessionUtils;
-import com.parvis.utils.SqlFileLoader;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import java.util.Map;
 
 @Repository
 public class AuthenticationRepository extends BaseRepository {
@@ -19,12 +20,11 @@ public class AuthenticationRepository extends BaseRepository {
 
     public AppResponse<EmployeeLoginResponse> validateUser(String emailOrId, String password) {
         try {
-            // Step 1: Load the SQL query from an external file
-            MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue("p_email", emailOrId);
-            params.addValue("p_password", password);
 
-            AppResponse<String> result = executeQuery(SqlFileLoader.loadSqlFromFile("sql/employee/find-by-email-and-password.sql"), params, String.class);
+            AppResponse<String> result = executeFunctionScalar("authenticate", Map.of(
+                    "p_email_or_id", emailOrId,
+                    "p_password", password
+            ), String.class);
 
             if (result.success()) {
                 return AppResponse.success(
@@ -33,13 +33,7 @@ public class AuthenticationRepository extends BaseRepository {
                                 .build()
                 );
             }
-            else {
-                var error = result.errorDetails();
-                throw switch (error.origin()) {
-                    case DATABASE -> new DatabaseException(error.message(), error.code(), error.sqlState(), error.cause());
-                    case SERVICE, CONTROLLER, REPOSITORY -> new InvalidRequestException(error.message(), error.code());
-                };
-            }
+            throw PgErrorMapper.map(result.errorDetails());
         }
         catch (DatabaseException exception) {
             throw exception;

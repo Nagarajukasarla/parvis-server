@@ -3,8 +3,8 @@ package com.parvis.repository;
 import com.parvis.dto.EmployeeCreateRequest;
 import com.parvis.dto.EmployeeCreateResponse;
 import com.parvis.exception.DatabaseException;
-import com.parvis.exception.InvalidRequestException;
 import com.parvis.factory.AppResponse;
+import com.parvis.factory.PgErrorMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -33,13 +33,8 @@ public class EmployeeRepository extends BaseRepository {
                                 .build()
                 );
             }
-            else {
-                var error = result.errorDetails();
-                throw switch (error.origin()) {
-                    case DATABASE -> new DatabaseException(error.message(), error.code(), error.sqlState(), error.cause());
-                    case SERVICE, CONTROLLER, REPOSITORY -> new InvalidRequestException(error.message(), error.code());
-                };
-            }
+
+            throw PgErrorMapper.map(result.errorDetails());
         }
         catch (DatabaseException exception) {
             throw exception;

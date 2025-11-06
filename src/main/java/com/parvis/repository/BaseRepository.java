@@ -1,7 +1,5 @@
 package com.parvis.repository;
 
-import com.parvis.exception.DatabaseException;
-import com.parvis.exception.InvalidRequestException;
 import com.parvis.factory.AppResponse;
 import com.parvis.factory.ErrorDetails;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +10,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,20 +58,18 @@ public abstract class BaseRepository {
         }
         catch (DataAccessException exception) {
             return AppResponse.failure(
-                    ErrorDetails.db(
+                    extractErrorDetails(
+                            exception,
                             "Database Query Failed: " + sql,
-                            "DB_QUERY_ERROR",
-                            extractSqlState(exception),
-                            exception
+                            "DB_QUERY_ERROR"
                     )
             );
         }
         catch (Exception exception) {
             return AppResponse.failure(
-                    ErrorDetails.db(
+                    ErrorDetails.repository(
                             "Database Query error: " + sql,
                             "DB_QUERY_ERROR_UNKNOWN",
-                            null,
                             exception
                     )
             );
@@ -96,20 +93,18 @@ public abstract class BaseRepository {
         }
         catch (DataAccessException exception) {
             return AppResponse.failure(
-                    ErrorDetails.db(
+                    extractErrorDetails(
+                            exception,
                             "Database Query Failed: " + sql,
-                            "DB_QUERY_ERROR",
-                            extractSqlState(exception),
-                            exception
+                            "DB_QUERY_ERROR"
                     )
             );
         }
         catch (Exception exception) {
             return AppResponse.failure(
-                    ErrorDetails.db(
+                    ErrorDetails.repository(
                             "Database Query error: " + sql,
                             "DB_QUERY_ERROR_UNKNOWN",
-                            null,
                             exception
                     )
             );
@@ -134,11 +129,10 @@ public abstract class BaseRepository {
         }
         catch (DataAccessException exception) {
             return AppResponse.failure(
-                    ErrorDetails.db(
+                    extractErrorDetails(
+                            exception,
                             "Database function failed: " + name,
-                            "DB_FUNCTION_ERROR",
-                            extractSqlState(exception),
-                            exception
+                            "DB_FUNCTION_ERROR"
                     )
             );
         }
@@ -173,22 +167,20 @@ public abstract class BaseRepository {
         }
         catch (DataAccessException exception) {
             return AppResponse.failure(
-                    ErrorDetails.db(
-                            "Database function failed: " + name,
-                            "DB_FUNCTION_ERROR",
-                            extractSqlState(exception),
-                            exception
-                    )
+                extractErrorDetails(
+                    exception,
+                    "Database function failed: " + name,
+                    "DB_FUNCTION_ERROR"
+                )
             );
         }
         catch (Exception exception) {
             return AppResponse.failure(
-                    ErrorDetails.db(
-                            "Unexpected function error: " + name,
-                            "DB_FUNCTION_ERROR_UNKNOWN",
-                            null,
-                            exception
-                    )
+                    ErrorDetails.repository(
+                        "DB_FUNCTION_ERROR_UNKNOWN",
+                        "Unexpected function error: " + name,
+                         exception
+                )
             );
         }
     }
@@ -202,17 +194,37 @@ public abstract class BaseRepository {
         return null;
     }
 
-    /**
-     * Extracts the SQL state from a DataAccessException.
-     *
-     * @param ex the DataAccessException to extract the SQL state from
-     * @return the SQL state string, or null if it cannot be determined
-     * @throws NullPointerException if ex is null
-     */
-    private String extractSqlState(DataAccessException ex) {
+    private ErrorDetails extractErrorDetails(DataAccessException ex, String contextMessage, String code) {
         Throwable cause = ex.getRootCause();
-        if (cause instanceof java.sql.SQLException sqlEx) {
-            return sqlEx.getSQLState();
+
+        String sqlState = null;
+        String message = ex.getMessage();
+        String hint = null;
+
+        if (cause instanceof SQLException sqlEx) {
+            sqlState = sqlEx.getSQLState();
+            message = sqlEx.getMessage();
+            hint = extractPgHint(sqlEx);
+        }
+
+        return ErrorDetails.db(
+                message != null ? message : contextMessage,
+                code,
+                sqlState,
+                hint,
+                cause
+        );
+    }
+
+    private String extractPgHint(SQLException sqlEx) {
+        // Postgres SQL sends structured fields in the server error message
+        // They appear as "Hint: something..." in the exception message.
+        String msg = sqlEx.getMessage();
+        if (msg == null) return null;
+
+        int idx = msg.indexOf("Hint:");
+        if (idx != -1) {
+            return msg.substring(idx + 5).trim();
         }
         return null;
     }

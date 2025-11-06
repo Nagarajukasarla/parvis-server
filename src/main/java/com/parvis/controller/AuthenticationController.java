@@ -2,7 +2,10 @@ package com.parvis.controller;
 
 import com.parvis.dto.EmployeeLoginRequest;
 import com.parvis.enums.ErrorOrigin;
+import com.parvis.exception.InvalidPasswordException;
+import com.parvis.exception.UserNotFoundException;
 import com.parvis.factory.AppResponse;
+import com.parvis.factory.ErrorDetails;
 import com.parvis.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -28,11 +31,20 @@ public class AuthenticationController {
             session.setAttribute("user", String.valueOf(result.data()));
             return ResponseEntity.ok(AppResponse.success("Login successful"));
         }
-        else if (result.errorDetails().origin() == ErrorOrigin.DATABASE) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
-        }
         else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+            ErrorDetails error = result.errorDetails();
+            if (error.origin() == ErrorOrigin.DATABASE) {
+                if (error.cause() instanceof InvalidPasswordException) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+                }
+                if (error.cause() instanceof UserNotFoundException) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+                }
+            }
+            if (error.origin() == ErrorOrigin.SERVICE) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
 }
