@@ -35,17 +35,12 @@ public class AuthenticationController {
         else {
             ErrorDetails error = result.errorDetails();
             if (error.origin() == ErrorOrigin.DATABASE) {
-                if (error.cause() instanceof InvalidPasswordException) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
-                }
                 if (error.cause() instanceof UserNotFoundException) {
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
                 }
             }
             if (error.origin() == ErrorOrigin.SERVICE) {
-                if (error.cause() instanceof InvalidRequestException) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
-                }
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
             }
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }

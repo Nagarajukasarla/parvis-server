@@ -1,8 +1,10 @@
 package com.parvis.repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.parvis.factory.AppResponse;
 import com.parvis.factory.ErrorDetails;
 import lombok.RequiredArgsConstructor;
+import org.postgresql.util.PGobject;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -26,6 +28,7 @@ public abstract class BaseRepository {
     protected final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private final Map<String, SimpleJdbcCall> functionCache = new ConcurrentHashMap<>();
+    private final ObjectMapper objectMapper;
 
     /**
      * Retrieves a SimpleJdbcCall instance for the specified function name.
@@ -160,8 +163,26 @@ public abstract class BaseRepository {
         try {
             var call = getFunction(name);
 
+            Object out = call.executeFunction(Object.class, params);
+
+            String json;
+            if (out instanceof PGobject) {
+                json = ((PGobject) out).getValue();
+            } else if (out != null) {
+                json = out.toString();
+            } else {
+                json = null;
+            }
+
+            if (json == null) {
+                return AppResponse.failure(
+                        ErrorDetails.repository("Function returned null: " + name, "DB_FUNCTION_NULL", null)
+                );
+            }
+
             @SuppressWarnings("unchecked")
-            Map<String, Object> result = call.executeFunction(Map.class, params);
+            Map<String, Object> result = objectMapper.readValue(json, Map.class);
+
             return AppResponse.success(result);
         }
         catch (DataAccessException exception) {
@@ -176,9 +197,9 @@ public abstract class BaseRepository {
         catch (Exception exception) {
             return AppResponse.failure(
                     ErrorDetails.repository(
-                        "DB_FUNCTION_ERROR_UNKNOWN",
-                        "Unexpected function error: " + name,
-                         exception
+                            "Unexpected function error: " + name,
+                            "DB_FUNCTION_ERROR_UNKNOWN",
+                            exception
                 )
             );
         }

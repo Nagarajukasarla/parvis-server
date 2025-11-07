@@ -3,6 +3,7 @@ package com.parvis.implementation;
 import com.parvis.dto.EmployeeLoginRequest;
 import com.parvis.dto.EmployeeLoginResponse;
 import com.parvis.exception.DatabaseException;
+import com.parvis.exception.InvalidPasswordException;
 import com.parvis.exception.InvalidRequestException;
 import com.parvis.factory.AppResponse;
 import com.parvis.factory.ErrorDetails;
@@ -36,6 +37,24 @@ public class AuthenticationServiceImplementation implements AuthenticationServic
                             exception.getCode(),
                             exception.getSqlState(),
                             exception.getHint(),
+                            exception
+                    )
+            );
+        }
+        catch (InvalidPasswordException exception) {
+            return AppResponse.failure(
+                    ErrorDetails.service(
+                            exception.getMessage(),
+                            exception.getCode(),
+                            exception
+                    )
+            );
+        }
+        catch (InvalidRequestException exception) {
+            return AppResponse.failure(
+                    ErrorDetails.service(
+                            exception.getMessage(),
+                            exception.getCode(),
                             exception
                     )
             );

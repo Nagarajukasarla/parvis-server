@@ -3,9 +3,12 @@ package com.parvis.exception;
 import com.parvis.factory.AppResponse;
 import com.parvis.factory.ErrorDetails;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -31,18 +34,6 @@ public class GlobalExceptionHandler {
                         ErrorDetails.service(
                                 ex.getMessage(),
                                 ex.getCode(),
-                                ex
-                        )
-                ));
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<AppResponse<?>> handleGenericException(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(AppResponse.failure(
-                        ErrorDetails.repository(
-                                "An unexpected error occurred.",
-                                "UNKNOWN_ERROR",
                                 ex
                         )
                 ));

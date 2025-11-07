@@ -2,6 +2,7 @@ package com.parvis.implementation;
 
 import com.parvis.dto.EmployeeCreateRequest;
 import com.parvis.dto.EmployeeCreateResponse;
+import com.parvis.dto.EmployeeUpdateResponse;
 import com.parvis.exception.DatabaseException;
 import com.parvis.exception.InvalidRequestException;
 import com.parvis.factory.AppResponse;
@@ -11,6 +12,7 @@ import com.parvis.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
@@ -24,17 +26,14 @@ public class EmployeeServiceImplementation implements EmployeeService {
     public AppResponse<EmployeeCreateResponse> createEmployee(EmployeeCreateRequest request) {
         // Validate fields
         try {
-            if (request == null || request.name() == null || request.name().isBlank()) {
+            if (request == null) {
                 throw new InvalidRequestException("Name is required", "NAME_MISSING");
             }
+            validateRequired(request.name(), "Name", "NAME_MISSING");
+            validateRequired(request.email(), "Email", "EMAIL_MISSING");
+            validateRequired(request.password(), "Password", "PASSWORD_MISSING");
 
-            if (request.email() == null || request.email().isBlank()) {
-                throw new InvalidRequestException("Email is required", "EMAIL_MISSING");
-            }
-            if (request.password() == null || request.password().isBlank()) {
-                throw new InvalidRequestException("Password is required", "PASSWORD_MISSING");
-            }
-            if (request.shift() == null) {
+            if (request.shift().isEmpty()) {
                 throw new InvalidRequestException("Shift is required", "SHIFT_MISSING");
             }
 
@@ -61,4 +60,41 @@ public class EmployeeServiceImplementation implements EmployeeService {
             );
         }
     }
+
+    @Override
+    public AppResponse<EmployeeUpdateResponse> updateEmployee(EmployeeCreateRequest request) {
+        try {
+            if (request == null || request.empId().isEmpty()) {
+                throw new InvalidRequestException("Employee details required", "EMPLOYEE_DATA_MISSING");
+            }
+            return employeeRepository.updateEmployee(request);
+        }
+        catch (DatabaseException exception) {
+            return AppResponse.failure(
+                    ErrorDetails.db(
+                            exception.getMessage(),
+                            exception.getCode(),
+                            exception.getSqlState(),
+                            exception.getHint(),
+                            exception
+                    )
+            );
+        }
+        catch (Exception ex) {
+            return AppResponse.failure(
+                    ErrorDetails.service(
+                            ex.getMessage(),
+                            "SERVICE_UNKNOWN_ERROR",
+                            ex
+                    )
+            );
+        }
+    }
+
+    private void validateRequired(Optional<String> field, String fieldName, String code) {
+        if (field.isEmpty() || field.get().isBlank()) {
+            throw new InvalidRequestException(fieldName + " is required", code);
+        }
+    }
+
 }

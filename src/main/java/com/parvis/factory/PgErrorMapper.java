@@ -1,8 +1,6 @@
 package com.parvis.factory;
 
-import com.parvis.exception.DatabaseException;
-import com.parvis.exception.InvalidPasswordException;
-import com.parvis.exception.UserNotFoundException;
+import com.parvis.exception.*;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -10,7 +8,9 @@ import java.util.function.Function;
 public final class PgErrorMapper {
     private static final Map<String, Function<ErrorDetails, DatabaseException>> SQLSTATE_MAPPINGS = Map.of(
             "E0010", e -> new UserNotFoundException(e.message(), e.code(), e.sqlState(), e.hint(), e.cause()),
-            "E0011", e -> new InvalidPasswordException(e.message(), e.code(), e.sqlState(), e.hint(), e.cause())
+            "E0014", e -> new ShiftNotFoundException(e.message(), e.code(), e.sqlState(), e.hint(), e.cause())
+
+
     );
 
     private PgErrorMapper() {}
@@ -25,8 +25,8 @@ public final class PgErrorMapper {
         if (msg.contains("not found")) {
             return new UserNotFoundException(error.message(), error.code(), error.sqlState(), error.hint(), error.cause());
         }
-        if (msg.contains("invalid password")) {
-            return new InvalidPasswordException(error.message(), error.code(), error.sqlState(), error.hint(), error.cause());
+        if (msg.contains("already exists")) {
+            return new UserAlreadyExistsException(error.message(), error.code(), error.sqlState(), error.hint(), error.cause());
         }
 
         return new DatabaseException(error.message(), error.code(), error.sqlState(), error.hint(), error.cause());

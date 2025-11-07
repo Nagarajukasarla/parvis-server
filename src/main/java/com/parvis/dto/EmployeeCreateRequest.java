@@ -2,9 +2,12 @@ package com.parvis.dto;
 
 import com.parvis.enums.Shift;
 
+import java.util.Optional;
+
 public record EmployeeCreateRequest(
-    String name,
-    String email,
-    String password,
-    Shift shift
+        Optional<String> empId,
+        Optional<String> name,
+        Optional<String> email,
+        Optional<String> password,
+        Optional<Shift> shift
 ) {}
