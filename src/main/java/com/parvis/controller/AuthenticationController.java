@@ -1,6 +1,7 @@
 package com.parvis.controller;
 
 import com.parvis.dto.EmployeeLoginRequest;
+import com.parvis.dto.EmployeeLoginResponse;
 import com.parvis.enums.ErrorOrigin;
 import com.parvis.exception.InvalidPasswordException;
 import com.parvis.exception.InvalidRequestException;
@@ -26,10 +27,11 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<AppResponse<?>> login(@RequestBody EmployeeLoginRequest request, HttpServletRequest httpRequest) {
-        var result = authenticationService.validateUser(request);
+        AppResponse<EmployeeLoginResponse> result = authenticationService.validateUser(request);
         if (result.success()) {
             HttpSession session = httpRequest.getSession(true);
-            session.setAttribute("user", String.valueOf(result.data()));
+            System.out.println("user: " + result.data().empId());
+            session.setAttribute("user", result.data().empId());
             return ResponseEntity.ok(AppResponse.success("Login successful"));
         }
         else {
