@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  * Base repository class providing common database operations and utility methods.
@@ -28,7 +29,9 @@ public abstract class BaseRepository {
     protected final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private final Map<String, SimpleJdbcCall> functionCache = new ConcurrentHashMap<>();
+
     private final ObjectMapper objectMapper;
+    private Logger logger = Logger.getLogger(BaseRepository.class.getName());
 
     /**
      * Retrieves a SimpleJdbcCall instance for the specified function name.
@@ -201,6 +204,51 @@ public abstract class BaseRepository {
                             "DB_FUNCTION_ERROR_UNKNOWN",
                             exception
                 )
+            );
+        }
+    }
+
+    protected <T> AppResponse<T> executeFunctionRecord(String name, Map<String, Object> params, Class<T> returnType) {
+        try {
+            var call = getFunction(name);
+
+            Object out = call.executeFunction(Object.class, params);
+
+            String json;
+            if (out instanceof PGobject) {
+                json = ((PGobject) out).getValue();
+            } else if (out != null) {
+                json = out.toString();
+            } else {
+                json = null;
+            }
+
+            if (json == null) {
+                return AppResponse.failure(
+                        ErrorDetails.repository("Function returned null: " + name, "DB_FUNCTION_NULL", null)
+                );
+            }
+
+            T result = objectMapper.readValue(json, returnType);
+
+            return AppResponse.success(result);
+        }
+        catch (DataAccessException exception) {
+            return AppResponse.failure(
+                    extractSqlErrorDetails(
+                            exception,
+                            "Database function failed: " + name,
+                            "DB_FUNCTION_ERROR"
+                    )
+            );
+        }
+        catch (Exception exception) {
+            return AppResponse.failure(
+                    ErrorDetails.repository(
+                            "Unexpected function error: " + name,
+                            "DB_FUNCTION_ERROR_UNKNOWN",
+                            exception
+                    )
             );
         }
     }

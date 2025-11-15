@@ -1,16 +1,17 @@
 package com.parvis.dto;
 
+import com.parvis.model.Shift;
 import lombok.Builder;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDate;
+import java.util.List;
 
 @Builder
 public record EmployeeResponse (
-    Integer id,
     String empId,
     String name,
-    OffsetDateTime[] shiftTimings,
-    OffsetDateTime[] totalDays,
-    OffsetDateTime[] attended,
-    OffsetDateTime[] leaves
+    Shift shiftTimings,
+    Integer totalDays,
+    List<LocalDate> attended,
+    List<LocalDate> leaves
 ) {}
