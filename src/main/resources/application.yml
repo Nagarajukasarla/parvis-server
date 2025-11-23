@@ -1,15 +1,24 @@
 spring:
   application:
     name: parvis-server
+
   datasource:
     url: jdbc:postgresql://${PROD_DB_HOST}:${PROD_DB_PORT}/${PROD_DB_NAME}
     username: ${PROD_DB_USERNAME}
     password: ${PROD_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 600000        # 10 minutes
+      max-lifetime: 1700000       # 28 minutes
+      connection-timeout: 30000   # 30 seconds
+
   session:
     store-type: jdbc
     jdbc:
       initialize-schema: never # auto-create tables if not exist
     timeout: 60m
+
   servlet:
     session:
       cookie:
@@ -17,8 +26,6 @@ spring:
         http-only: true
         secure: false  # make true in production
         same-site: none
-  mvc:
-    throw-exception-if-no-handler-found:
 
 logging:
   level:

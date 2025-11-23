@@ -4,11 +4,11 @@ import lombok.Builder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.OffsetDateTime;
+import java.util.Optional;
 
 @Builder
 public record EmployeeAttendanceRequest(
-    String userId,
-    String name,
-    OffsetDateTime dateTime,
-    MultipartFile image
+        OffsetDateTime inTime,
+        OffsetDateTime outTime,
+        MultipartFile image
 ) {}

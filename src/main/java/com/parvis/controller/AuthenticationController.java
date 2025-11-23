@@ -3,8 +3,6 @@ package com.parvis.controller;
 import com.parvis.dto.EmployeeLoginRequest;
 import com.parvis.dto.EmployeeLoginResponse;
 import com.parvis.enums.ErrorOrigin;
-import com.parvis.exception.InvalidPasswordException;
-import com.parvis.exception.InvalidRequestException;
 import com.parvis.exception.UserNotFoundException;
 import com.parvis.factory.AppResponse;
 import com.parvis.factory.ErrorDetails;
@@ -45,6 +43,18 @@ public class AuthenticationController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
             }
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest httpRequest) {
+        HttpSession session = httpRequest.getSession(false);
+        if (session != null && session.getAttribute("user") != null) {
+            session.invalidate();
+            return ResponseEntity.ok(AppResponse.success("Logout successful"));
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("No active session found");
         }
     }
 }

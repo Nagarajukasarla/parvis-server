@@ -3,7 +3,7 @@ package com.parvis.exception;
 import lombok.Getter;
 
 @Getter
-public class InvalidPasswordException extends RuntimeException {
+public final class InvalidPasswordException extends RuntimeException {
     private final String code;
 
     public InvalidPasswordException(String message, String code) {

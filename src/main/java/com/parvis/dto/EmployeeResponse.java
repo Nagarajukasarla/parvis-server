@@ -4,7 +4,9 @@ import com.parvis.model.Shift;
 import lombok.Builder;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Builder
 public record EmployeeResponse (
@@ -12,6 +14,6 @@ public record EmployeeResponse (
     String name,
     Shift shiftTimings,
     Integer totalDays,
-    List<LocalDate> attended,
+    List<Map<String, OffsetDateTime>> attended,
     List<LocalDate> leaves
 ) {}

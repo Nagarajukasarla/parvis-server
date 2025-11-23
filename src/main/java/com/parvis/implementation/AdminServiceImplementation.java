@@ -64,9 +64,10 @@ public class AdminServiceImplementation implements AdminService {
     @Override
     public AppResponse<EmployeeUpdateResponse> updateEmployee(EmployeeCreateRequest request) {
         try {
-            if (request == null || request.empId().isEmpty()) {
+            if (request == null) {
                 throw new InvalidRequestException("Employee details required", "EMPLOYEE_DATA_MISSING");
             }
+            validateRequired(request.empId(), "EMPLOYEE_ID", "EMPLOYEE_ID_MISSING");
             return adminRepository.updateEmployee(request);
         }
         catch (DatabaseException exception) {
